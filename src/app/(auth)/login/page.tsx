@@ -1,6 +1,7 @@
 // src/app/(auth)/login/page.tsx
 import LoginForm from "@/components/auth/LoginForm";
 import Image from "next/image";
+import { Suspense } from "react";
 
 export default function LoginPage() {
   return (
@@ -100,7 +101,9 @@ export default function LoginPage() {
             />
           </div>
 
-          <LoginForm />
+          <Suspense fallback={<div>Loading...</div>}>
+            <LoginForm />
+          </Suspense>
         </div>
       </div>
     </div>

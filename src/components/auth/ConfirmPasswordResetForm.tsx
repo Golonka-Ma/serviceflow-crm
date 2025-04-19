@@ -64,7 +64,7 @@ export default function ConfirmPasswordResetForm() {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       {error && (
-        <Alert variant="destructive">
+        <Alert variant="error">
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}

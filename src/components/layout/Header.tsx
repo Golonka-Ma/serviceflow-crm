@@ -9,10 +9,9 @@ import { Menu, Sun, Moon, User, LogOut } from "lucide-react";
 // import { useAuth } from '@/hooks/useAuth';
 
 export default function Header() {
-  const { setSidebarOpen } = useAppContext();
+  const { toggleSidebar, darkMode, setDarkMode } = useAppContext();
   // const { user } = useSessionContext(); // Use this to show user info
   // const { signOut } = useAuth(); // Use this for logout functionality
-  const { darkMode, setDarkMode } = useAppContext(); // Use this for theme toggle
 
   // Placeholder logout function
   const handleLogout = async () => {
@@ -29,7 +28,7 @@ export default function Header() {
         {/* Left side: Mobile menu button and Breadcrumbs */}
         <div className="flex items-center">
           <button
-            onClick={() => setSidebarOpen(true)}
+            onClick={toggleSidebar}
             className="text-gray-500 mr-4 lg:hidden"
             aria-label="Open sidebar"
           >
