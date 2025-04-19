@@ -24,6 +24,9 @@ export default function LoginForm() {
   const [error, setError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
 
+  // Pobieramy redirectTo z URL query params
+  const redirectTo = searchParams.get("redirectTo") || "/dashboard";
+
   const {
     register,
     handleSubmit,
@@ -49,7 +52,6 @@ export default function LoginForm() {
         throw signInError;
       }
 
-      const redirectTo = searchParams.get("redirectTo") || "/dashboard";
       router.push(redirectTo);
       router.refresh();
     } catch (err: any) {
@@ -61,21 +63,31 @@ export default function LoginForm() {
   };
 
   const handleGoogleSignIn = async () => {
+    setIsLoading(true);
     setError(null);
+
     try {
+      // Przekazujemy aktualny redirectTo do callbacku
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo: `${window.location.origin}/auth/callback?redirectTo=${encodeURIComponent(redirectTo)}`,
+          queryParams: {
+            access_type: "offline",
+            prompt: "consent",
+          },
         },
       });
+
       if (error) throw error;
     } catch (err: any) {
       console.error("Google Sign in error:", err);
       setError(
         err.message || "Nie udało się zalogować przez Google. Spróbuj ponownie."
       );
+      setIsLoading(false); // Kończymy ładowanie tylko w przypadku błędu
     }
+    // Nie ustawiamy setIsLoading(false) w przypadku sukcesu, bo i tak nastąpi przekierowanie
   };
 
   return (
@@ -90,7 +102,7 @@ export default function LoginForm() {
       </div>
 
       {error && (
-        <div className="alert alert-error shadow-lg mb-6 animate-shake">
+        <div className="bg-red-50 text-red-600 p-4 rounded-lg shadow-lg mb-6 animate-shake">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             className="stroke-current shrink-0 h-6 w-6"
@@ -109,42 +121,38 @@ export default function LoginForm() {
       )}
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-        <div className="form-control">
+        <div className="space-y-2">
           <div className="relative">
             <input
               type="email"
               placeholder="Email"
-              className={`input input-bordered w-full pl-11 pr-4 bg-base-100 ${
-                errors.email ? "input-error" : ""
+              className={`w-full px-4 py-2 pl-11 pr-4 bg-white border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 ${
+                errors.email ? "border-red-500" : "border-gray-300"
               }`}
               {...register("email")}
             />
-            <FiMail className="absolute left-4 top-1/2 transform -translate-y-1/2 text-base-content/50 w-5 h-5" />
+            <FiMail className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
           </div>
           {errors.email && (
-            <label className="label">
-              <span className="label-text-alt text-error">
-                {errors.email.message}
-              </span>
-            </label>
+            <div className="text-sm text-red-500">{errors.email.message}</div>
           )}
         </div>
 
-        <div className="form-control">
+        <div className="space-y-2">
           <div className="relative">
             <input
               type={showPassword ? "text" : "password"}
               placeholder="Hasło"
-              className={`input input-bordered w-full pl-11 pr-12 bg-base-100 ${
-                errors.password ? "input-error" : ""
+              className={`w-full px-4 py-2 pl-11 pr-12 bg-white border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 ${
+                errors.password ? "border-red-500" : "border-gray-300"
               }`}
               {...register("password")}
             />
-            <FiLock className="absolute left-4 top-1/2 transform -translate-y-1/2 text-base-content/50 w-5 h-5" />
+            <FiLock className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-4 top-1/2 transform -translate-y-1/2 text-base-content/50 hover:text-base-content transition-colors"
+              className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
             >
               {showPassword ? (
                 <FiEyeOff className="w-5 h-5" />
@@ -154,18 +162,16 @@ export default function LoginForm() {
             </button>
           </div>
           {errors.password && (
-            <label className="label">
-              <span className="label-text-alt text-error">
-                {errors.password.message}
-              </span>
-            </label>
+            <div className="text-sm text-red-500">
+              {errors.password.message}
+            </div>
           )}
         </div>
 
         <div className="flex justify-end">
           <Link
-            href="/forgot-password"
-            className="text-sm text-primary hover:text-primary-focus transition-colors"
+            href="/reset-password"
+            className="text-sm text-primary hover:text-primary/80 transition-colors"
           >
             Zapomniałeś hasła?
           </Link>
@@ -173,18 +179,44 @@ export default function LoginForm() {
 
         <button
           type="submit"
-          className={`btn btn-primary w-full ${isLoading ? "loading" : ""}`}
+          className={`w-full px-4 py-2 text-white bg-primary hover:bg-primary-light rounded-lg transition-colors duration-200 flex items-center justify-center ${
+            isLoading ? "opacity-70 cursor-not-allowed" : ""
+          }`}
           disabled={isLoading}
         >
+          {isLoading ? (
+            <span className="mr-2">
+              <svg
+                className="animate-spin h-5 w-5 text-white"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                ></circle>
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                ></path>
+              </svg>
+            </span>
+          ) : null}
           {isLoading ? "Logowanie..." : "Zaloguj się"}
         </button>
 
         <div className="relative my-8">
           <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-base-300"></div>
+            <div className="w-full border-t border-gray-300"></div>
           </div>
           <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-base-100 px-4 text-base-content/60">
+            <span className="bg-background px-4 text-gray-500">
               lub kontynuuj przez
             </span>
           </div>
@@ -193,23 +225,49 @@ export default function LoginForm() {
         <button
           type="button"
           onClick={handleGoogleSignIn}
-          className="btn btn-outline w-full hover:bg-base-200 gap-2 normal-case font-normal"
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg hover:bg-background-light transition-colors duration-200 flex items-center justify-center gap-2"
+          disabled={isLoading}
         >
-          <Image
-            src="/google.svg"
-            alt="Google"
-            width={20}
-            height={20}
-            className="opacity-80"
-          />
-          Google
+          {isLoading ? (
+            <span className="mr-2">
+              <svg
+                className="animate-spin h-5 w-5 text-primary"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                ></circle>
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                ></path>
+              </svg>
+            </span>
+          ) : (
+            <Image
+              src="/google.svg"
+              alt="Google"
+              width={20}
+              height={20}
+              className="opacity-80"
+            />
+          )}
+          {isLoading ? "Logowanie..." : "Google"}
         </button>
 
-        <p className="text-center text-base-content/60 text-sm mt-8">
+        <p className="text-center text-gray-500 text-sm mt-8">
           Nie masz jeszcze konta?{" "}
           <Link
             href="/register"
-            className="text-primary hover:text-primary-focus font-medium transition-colors"
+            className="text-primary hover:text-primary-light font-medium transition-colors"
           >
             Zarejestruj się za darmo
           </Link>

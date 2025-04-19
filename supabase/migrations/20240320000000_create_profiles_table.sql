@@ -15,7 +15,6 @@ CREATE TABLE IF NOT EXISTS profiles (
 CREATE INDEX IF NOT EXISTS idx_profiles_email ON profiles (email);
 CREATE INDEX IF NOT EXISTS idx_profiles_phone ON profiles (phone);
 CREATE INDEX IF NOT EXISTS idx_profiles_last_name ON profiles (last_name);
-CREATE INDEX IF NOT EXISTS idx_profiles_job_title ON profiles (job_title);
 
 -- Create update timestamp function
 CREATE OR REPLACE FUNCTION update_updated_at_column()

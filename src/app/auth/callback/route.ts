@@ -6,53 +6,72 @@ export async function GET(request: Request) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get("code");
 
-  if (code) {
-    const cookieStore = cookies();
-    const response = new NextResponse();
+  // Pobieramy redirectTo z URL lub ustawiamy domyślną wartość
+  const redirectTo = requestUrl.searchParams.get("redirectTo") || "/dashboard";
 
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          get(name: string) {
-            return cookieStore.get(name)?.value;
-          },
-          set(name: string, value: string, options: any) {
-            response.cookies.set({
-              name,
-              value,
-              ...options,
-            });
-          },
-          remove(name: string, options: any) {
-            response.cookies.set({
-              name,
-              value: "",
-              ...options,
-              maxAge: 0,
-            });
-          },
+  // Sprawdzamy, czy URL jest bezpieczny
+  const safeRedirectTo = redirectTo.startsWith("/") ? redirectTo : "/dashboard";
+
+  // Inicjalizujemy cookieStore
+  const cookieStore = cookies();
+
+  // Tworzymy instancję klienta Supabase
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name: string) {
+          return cookieStore.get(name)?.value;
         },
-      }
-    );
-
-    try {
-      await supabase.auth.exchangeCodeForSession(code);
-      return NextResponse.redirect(new URL("/dashboard", request.url), {
-        headers: response.headers,
-      });
-    } catch (error) {
-      console.error("Auth callback error:", error);
-      return NextResponse.redirect(
-        new URL("/login?error=Authentication%20failed", request.url),
-        {
-          headers: response.headers,
-        }
-      );
+        set(name: string, value: string, options: any) {
+          cookieStore.set({
+            name,
+            value,
+            ...options,
+          });
+        },
+        remove(name: string, options: any) {
+          cookieStore.set({
+            name,
+            value: "",
+            ...options,
+            maxAge: 0,
+          });
+        },
+      },
     }
+  );
+
+  // WAŻNE: Obsługa fragmentu URL (hash) - taki format zwraca Google OAuth
+  // Fragment URL nie jest wysyłany na serwer, więc musimy obsłużyć to po stronie klienta
+  // Przekierujmy do specjalnej strony, która przechwyci fragment i obsłuży go
+
+  if (!code) {
+    // Przekierowujemy do strony auth-handler, która przechwyci i przetworzy fragmenty URL
+    return NextResponse.redirect(new URL("/auth-handler", request.url));
   }
 
-  // Return 400 if code is missing
-  return new NextResponse("Missing code parameter", { status: 400 });
+  // Jeśli mamy kod autoryzacji, przetwarzamy go normalnie
+  try {
+    const { error } = await supabase.auth.exchangeCodeForSession(code);
+
+    if (error) {
+      console.error("Auth callback error:", error);
+      return NextResponse.redirect(
+        new URL(
+          `/login?error=${encodeURIComponent(error.message)}`,
+          request.url
+        )
+      );
+    }
+
+    // Przekierowujemy na wskazaną stronę
+    return NextResponse.redirect(new URL(safeRedirectTo, request.url));
+  } catch (error: any) {
+    console.error("Auth callback exception:", error);
+    return NextResponse.redirect(
+      new URL("/login?error=Authentication%20failed", request.url)
+    );
+  }
 }

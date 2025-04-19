@@ -85,126 +85,159 @@ export default function RegisterForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+    <div className="w-full">
+      <div className="text-center mb-8">
+        <h2 className="text-2xl font-bold text-dark">
+          Dołącz do ServiceFlow CRM
+        </h2>
+        <p className="text-gray-500 mt-2">
+          Zarejestruj się, aby rozpocząć zarządzanie swoimi zleceniami
+        </p>
+      </div>
+
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">
-          {error}
+        <div className="bg-red-50 text-red-600 p-4 rounded-lg shadow-lg mb-6 animate-shake">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="stroke-current shrink-0 h-6 w-6"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+          <span className="text-sm">{error}</span>
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label
-            htmlFor="firstName"
-            className="block text-sm font-medium text-gray-700"
-          >
-            Imię
-          </label>
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <input
+              {...register("firstName")}
+              type="text"
+              placeholder="Imię"
+              className={`w-full px-4 py-2 bg-white border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 ${
+                errors.firstName ? "border-red-500" : "border-gray-300"
+              }`}
+            />
+            {errors.firstName && (
+              <p className="text-sm text-red-500">{errors.firstName.message}</p>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <input
+              {...register("lastName")}
+              type="text"
+              placeholder="Nazwisko"
+              className={`w-full px-4 py-2 bg-white border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 ${
+                errors.lastName ? "border-red-500" : "border-gray-300"
+              }`}
+            />
+            {errors.lastName && (
+              <p className="text-sm text-red-500">{errors.lastName.message}</p>
+            )}
+          </div>
+        </div>
+
+        <div className="space-y-2">
           <input
-            {...register("firstName")}
-            type="text"
-            id="firstName"
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            {...register("email")}
+            type="email"
+            placeholder="Email"
+            className={`w-full px-4 py-2 bg-white border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 ${
+              errors.email ? "border-red-500" : "border-gray-300"
+            }`}
           />
-          {errors.firstName && (
-            <p className="mt-1 text-sm text-red-600">
-              {errors.firstName.message}
-            </p>
+          {errors.email && (
+            <p className="text-sm text-red-500">{errors.email.message}</p>
           )}
         </div>
 
-        <div>
-          <label
-            htmlFor="lastName"
-            className="block text-sm font-medium text-gray-700"
-          >
-            Nazwisko
-          </label>
+        <div className="space-y-2">
           <input
-            {...register("lastName")}
-            type="text"
-            id="lastName"
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            {...register("password")}
+            type="password"
+            placeholder="Hasło"
+            className={`w-full px-4 py-2 bg-white border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 ${
+              errors.password ? "border-red-500" : "border-gray-300"
+            }`}
           />
-          {errors.lastName && (
-            <p className="mt-1 text-sm text-red-600">
-              {errors.lastName.message}
-            </p>
+          {errors.password && (
+            <p className="text-sm text-red-500">{errors.password.message}</p>
           )}
         </div>
-      </div>
 
-      <div>
-        <label
-          htmlFor="email"
-          className="block text-sm font-medium text-gray-700"
-        >
-          Email
-        </label>
-        <input
-          {...register("email")}
-          type="email"
-          id="email"
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-        />
-        {errors.email && (
-          <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
+        <div className="flex items-center">
+          <input
+            {...register("terms")}
+            type="checkbox"
+            id="terms"
+            className="h-4 w-4 text-primary focus:ring-primary/50 border-gray-300 rounded"
+          />
+          <label htmlFor="terms" className="ml-2 block text-sm text-gray-700">
+            Akceptuję{" "}
+            <Link
+              href="/terms"
+              className="text-primary hover:text-primary-light"
+            >
+              regulamin
+            </Link>
+          </label>
+        </div>
+        {errors.terms && (
+          <p className="text-sm text-red-500">{errors.terms.message}</p>
         )}
-      </div>
 
-      <div>
-        <label
-          htmlFor="password"
-          className="block text-sm font-medium text-gray-700"
+        <button
+          type="submit"
+          disabled={isLoading}
+          className={`w-full px-4 py-2 text-white bg-primary hover:bg-primary-light rounded-lg transition-colors duration-200 flex items-center justify-center ${
+            isLoading ? "opacity-70 cursor-not-allowed" : ""
+          }`}
         >
-          Hasło
-        </label>
-        <input
-          {...register("password")}
-          type="password"
-          id="password"
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-        />
-        {errors.password && (
-          <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>
-        )}
-      </div>
+          {isLoading ? (
+            <span className="mr-2">
+              <svg
+                className="animate-spin h-5 w-5 text-white"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                ></circle>
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                ></path>
+              </svg>
+            </span>
+          ) : null}
+          {isLoading ? "Rejestracja..." : "Zarejestruj się"}
+        </button>
 
-      <div className="flex items-center">
-        <input
-          {...register("terms")}
-          type="checkbox"
-          id="terms"
-          className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-        />
-        <label htmlFor="terms" className="ml-2 block text-sm text-gray-700">
-          Akceptuję{" "}
-          <Link href="/terms" className="text-blue-600 hover:text-blue-500">
-            regulamin
+        <p className="text-center text-gray-500 text-sm mt-8">
+          Masz już konto?{" "}
+          <Link
+            href="/login"
+            className="text-primary hover:text-primary-light font-medium"
+          >
+            Zaloguj się
           </Link>
-        </label>
-      </div>
-      {errors.terms && (
-        <p className="text-sm text-red-600">{errors.terms.message}</p>
-      )}
-
-      <button
-        type="submit"
-        disabled={isLoading}
-        className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
-      >
-        {isLoading ? "Rejestracja..." : "Zarejestruj się"}
-      </button>
-
-      <p className="text-center text-sm text-gray-600">
-        Masz już konto?{" "}
-        <Link
-          href="/login"
-          className="font-medium text-blue-600 hover:text-blue-500"
-        >
-          Zaloguj się
-        </Link>
-      </p>
-    </form>
+        </p>
+      </form>
+    </div>
   );
 }

@@ -7,6 +7,23 @@ module.exports = {
   ],
   theme: {
     extend: {
+      colors: {
+        primary: {
+          DEFAULT: "#0077B6",
+          light: "#0096C7",
+        },
+        secondary: {
+          DEFAULT: "#00B77D",
+          light: "#38B000",
+        },
+        dark: {
+          DEFAULT: "#1A2B4C",
+        },
+        background: {
+          DEFAULT: "#FFFFFF",
+          light: "#F8F9FA",
+        },
+      },
       animation: {
         fadeIn: "fadeIn 0.5s ease-in-out",
         shake: "shake 0.5s cubic-bezier(.36,.07,.19,.97) both",
@@ -31,17 +48,17 @@ module.exports = {
     themes: [
       {
         mytheme: {
-          primary: "#570df8",
-          secondary: "#f000b8",
-          accent: "#37cdbe",
-          neutral: "#3d4451",
-          "base-100": "#ffffff",
-          "base-200": "#f9fafb",
-          "base-300": "#e5e7eb",
-          info: "#3abff8",
-          success: "#36d399",
-          warning: "#fbbd23",
-          error: "#f87272",
+          primary: "#0077B6",
+          secondary: "#00B77D",
+          accent: "#0096C7",
+          neutral: "#1A2B4C",
+          "base-100": "#FFFFFF",
+          "base-200": "#F8F9FA",
+          "base-300": "#E5E7EB",
+          info: "#0096C7",
+          success: "#00B77D",
+          warning: "#FBBF24",
+          error: "#EF4444",
         },
       },
       "light",

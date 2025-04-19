@@ -1,37 +1,79 @@
 import ResetPasswordForm from "@/components/auth/ResetPasswordForm";
 import Image from "next/image";
+import { Suspense } from "react";
+
+const geometricPatternUrl = `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`;
 
 export default function ResetPasswordPage() {
   return (
-    <div className="min-h-screen grid grid-cols-1 lg:grid-cols-2 bg-base-100">
-      {/* Sekcja Brandingowa */}
-      <div className="hidden lg:flex flex-col items-center justify-center p-12 bg-gradient-to-br from-primary to-secondary text-primary-content relative overflow-hidden">
-        <Image
-          src="/logo-white.svg"
-          alt="ServiceFlowCRM Logo"
-          width={150}
-          height={40}
-          className="mb-8"
-        />
-        <h1 className="text-4xl font-bold mb-4 text-center">
-          Zresetuj swoje hasło
-        </h1>
-        <p className="text-lg opacity-90 text-center max-w-md">
-          Nie martw się, pomożemy Ci odzyskać dostęp do konta.
-        </p>
+    <div className="min-h-screen grid grid-cols-1 lg:grid-cols-2">
+      {/* Sekcja Brandingowa - Gradient i Wzór na Pseudo-elemencie */}
+      <div className="hidden lg:flex flex-col items-center justify-center p-12 relative overflow-hidden bg-gradient-to-br from-primary via-primary/90 to-secondary">
+        {/* Pseudo-element ::before dla wzoru tła */}
+        <div
+          className="absolute inset-0 before:absolute before:inset-0 before:opacity-10"
+          style={{
+            backgroundImage: geometricPatternUrl,
+            backgroundSize: "60px 60px",
+          }}
+        ></div>
+
+        {/* Reszta zawartości sekcji brandingowej */}
+        <div className="relative z-10 max-w-xl mx-auto text-center">
+          <Image
+            src="/logo-white.png"
+            alt="ServiceFlowCRM Logo"
+            width={180}
+            height={45}
+            className="mb-12 mx-auto"
+            priority
+          />
+          <h1 className="text-5xl font-bold mb-6 text-white leading-tight">
+            Resetowanie hasła
+          </h1>
+          <p className="text-xl text-white/90 mb-12 leading-relaxed max-w-lg mx-auto">
+            Nie martw się, pomożemy Ci odzyskać dostęp do konta. Wprowadź swój
+            adres email, a wyślemy Ci instrukcje resetowania hasła.
+          </p>
+
+          {/* Sekcja Social Proof */}
+          <div className="mt-16 grid grid-cols-3 gap-8 text-white/90">
+            <div>
+              <div className="text-3xl font-bold mb-2">2,000+</div>
+              <div className="text-sm">Aktywnych użytkowników</div>
+            </div>
+            <div>
+              <div className="text-3xl font-bold mb-2">98%</div>
+              <div className="text-sm">Zadowolonych klientów</div>
+            </div>
+            <div>
+              <div className="text-3xl font-bold mb-2">24/7</div>
+              <div className="text-sm">Wsparcie techniczne</div>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Sekcja Formularza */}
-      <div className="flex flex-col items-center justify-center p-6 sm:p-12">
-        <div className="lg:hidden mb-8">
-          <Image
-            src="/logo-color.svg"
-            alt="ServiceFlowCRM Logo"
-            width={120}
-            height={30}
-          />
+      <div className="flex flex-col items-center justify-center min-h-screen p-6 sm:p-12 bg-base-100">
+        <div className="w-full max-w-[400px] mx-auto">
+          {/* Logo Mobilne */}
+          <div className="lg:hidden flex justify-center mb-12">
+            <Image
+              src="/logo-color.png"
+              alt="ServiceFlowCRM Logo"
+              width={160}
+              height={40}
+              priority
+            />
+          </div>
+
+          <Suspense
+            fallback={<div className="text-center my-8">Ładowanie...</div>}
+          >
+            <ResetPasswordForm />
+          </Suspense>
         </div>
-        <ResetPasswordForm />
       </div>
     </div>
   );
