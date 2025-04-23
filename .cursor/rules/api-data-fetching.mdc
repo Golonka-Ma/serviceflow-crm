@@ -1,0 +1,31 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# API Routes and Data Fetching
+
+This application uses a combination of Supabase direct queries and Next.js API routes for data fetching.
+
+## API Routes
+
+- [src/app/api](mdc:src/app/api) - Contains API route handlers
+- [src/app/api/auth](mdc:src/app/api/auth) - Authentication API endpoints
+
+## Data Fetching Methods
+
+The application uses the following patterns for data fetching:
+
+1. **Direct Supabase Queries**: Many data operations interact directly with Supabase from the client using the Supabase client.
+
+2. **SWR For Data Fetching**: The application uses SWR for data fetching and caching, configured in hooks.
+
+3. **Custom Hooks**: 
+   - [src/hooks/useSession.ts](mdc:src/hooks/useSession.ts) - Hook for managing user session
+
+## Authentication
+
+Authentication is handled through:
+- Supabase Authentication
+- Next.js middleware [middleware.ts](mdc:middleware.ts) for route protection
+

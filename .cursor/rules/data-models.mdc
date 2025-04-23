@@ -1,0 +1,26 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Data Models
+
+This application uses the following key data models:
+
+- [src/types/client.ts](mdc:src/types/client.ts) - Client data structure
+- [src/types/job.ts](mdc:src/types/job.ts) - Job/service data structure
+- [src/types/reminder.ts](mdc:src/types/reminder.ts) - Reminder data structure
+- [src/types/payment.ts](mdc:src/types/payment.ts) - Payment data structure
+- [src/types/profile.ts](mdc:src/types/profile.ts) - User profile data structure
+- [src/types/company.ts](mdc:src/types/company.ts) - Company data structure
+- [src/types/document.ts](mdc:src/types/document.ts) - Document data structure
+- [src/types/subscription.ts](mdc:src/types/subscription.ts) - Subscription data structure
+- [src/types/settings.ts](mdc:src/types/settings.ts) - Application settings
+
+## Database Integration
+
+The application uses Supabase as its database and backend service. Database operations are performed through:
+
+- [src/lib/supabase](mdc:src/lib/supabase) - Supabase client configurations
+- Service functions in respective feature directories
+

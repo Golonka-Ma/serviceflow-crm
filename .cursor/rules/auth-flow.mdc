@@ -1,0 +1,23 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Authentication Flow
+
+This application uses Supabase for authentication. The authentication flow is handled through the following components:
+
+- [src/app/auth](mdc:src/app/auth) - Authentication pages
+- [src/components/auth](mdc:src/components/auth) - Auth-related components
+- [src/middleware.ts](mdc:src/middleware.ts) - Authentication middleware
+- [src/app/auth-handler](mdc:src/app/auth-handler) - Auth callback handlers
+
+## Protected Routes
+
+Routes under the following paths require authentication:
+- `/dashboard` - Main dashboard
+- `/clients` - Client management
+- `/jobs` - Job management 
+- `/reminders` - Reminders
+- `/settings` - User and application settings
+

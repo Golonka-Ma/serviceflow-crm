@@ -1,0 +1,25 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# ServiceFlow CRM Project Overview
+
+This is a Next.js based CRM application for service businesses. It's built with TypeScript, uses Supabase for backend services, and Tailwind CSS for styling.
+
+## Key Files and Directories
+
+- [src/app/layout.tsx](mdc:src/app/layout.tsx) - Main layout component for the Next.js application
+- [src/app/page.tsx](mdc:src/app/page.tsx) - Homepage component
+- [middleware.ts](mdc:middleware.ts) - Middleware for authentication and routing
+- [src/lib/supabase](mdc:src/lib/supabase) - Supabase client configuration
+
+## Application Structure
+
+- `src/app` - Next.js app router pages and API routes
+- `src/components` - Reusable UI components
+- `src/lib` - Utility functions and service configurations
+- `src/hooks` - Custom React hooks
+- `src/context` - React context providers
+- `src/types` - TypeScript type definitions
+
