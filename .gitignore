@@ -42,3 +42,8 @@ next-env.d.ts
 .branches
 .temp
 supabase/config.toml
+**/config.toml
+**/*.toml
+**/secrets.*
+**/credentials.*
+**/oauth.*
