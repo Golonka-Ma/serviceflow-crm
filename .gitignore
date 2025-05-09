@@ -42,4 +42,7 @@ next-env.d.ts
 .branches
 .temp 
 
-.config.toml
+supabase/config.toml
+
+# Supabase
+supabase/config.toml
