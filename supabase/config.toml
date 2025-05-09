@@ -75,7 +75,6 @@ url = ""
 
 [auth.external.google]
 enabled = true
-client_id = "" # Uzupełnij po utworzeniu projektu w Google Cloud Console
-secret = "" # Uzupełnij po utworzeniu projektu w Google Cloud Console
+
 # Overrides the default auth redirectUrl.
 redirect_uri = "http://localhost:3000/auth/callback" 
