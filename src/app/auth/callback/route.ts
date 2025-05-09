@@ -43,10 +43,6 @@ export async function GET(request: Request) {
     }
   );
 
-  // WAŻNE: Obsługa fragmentu URL (hash) - taki format zwraca Google OAuth
-  // Fragment URL nie jest wysyłany na serwer, więc musimy obsłużyć to po stronie klienta
-  // Przekierujmy do specjalnej strony, która przechwyci fragment i obsłuży go
-
   if (!code) {
     // Przekierowujemy do strony auth-handler, która przechwyci i przetworzy fragmenty URL
     return NextResponse.redirect(new URL("/auth-handler", request.url));

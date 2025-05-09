@@ -1,64 +1,84 @@
-import { NextRequest, NextResponse } from "next/server";
-import { createMiddlewareClient } from "@supabase/auth-helpers-nextjs";
+import { createServerClient, type CookieOptions } from "@supabase/ssr";
+import { NextResponse, type NextRequest } from "next/server";
 
-export async function middleware(req: NextRequest) {
-  const res = NextResponse.next();
+export async function middleware(request: NextRequest) {
+  let response = NextResponse.next({
+    request: {
+      headers: request.headers,
+    },
+  });
 
-  // Security headers
-  res.headers.set("X-Content-Type-Options", "nosniff");
-  res.headers.set("X-XSS-Protection", "1; mode=block");
-  res.headers.set("X-Frame-Options", "DENY");
-  res.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
-  res.headers.set(
-    "Permissions-Policy",
-    "camera=(), microphone=(), geolocation=()"
-  );
-
-  // Content Security Policy
-  res.headers.set(
-    "Content-Security-Policy",
-    `
-    default-src 'self';
-    script-src 'self' 'unsafe-inline' https://js.stripe.com https://cdn.jsdelivr.net;
-    style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
-    img-src 'self' data: https://*.supabase.co https://*.stripe.com;
-    font-src 'self' https://fonts.gstatic.com;
-    connect-src 'self' https://*.supabase.co https://api.stripe.com;
-    frame-src https://js.stripe.com;
-    object-src 'none';
-  `
-      .replace(/\s+/g, " ")
-      .trim()
-  );
-
-  // CORS configuration (for API routes)
-  if (req.nextUrl.pathname.startsWith("/api/")) {
-    res.headers.set("Access-Control-Allow-Origin", "https://serviceflowcrm.pl");
-    res.headers.set(
-      "Access-Control-Allow-Methods",
-      "GET, POST, PUT, DELETE, OPTIONS"
-    );
-    res.headers.set(
-      "Access-Control-Allow-Headers",
-      "Content-Type, Authorization"
-    );
-
-    // Handle preflight requests
-    if (req.method === "OPTIONS") {
-      return new NextResponse(null, { status: 200, headers: res.headers });
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name: string) {
+          return request.cookies.get(name)?.value;
+        },
+        set(name: string, value: string, options: CookieOptions) {
+          response.cookies.set({
+            name,
+            value,
+            ...options,
+          });
+        },
+        remove(name: string, options: CookieOptions) {
+          response.cookies.set({
+            name,
+            value: "",
+            ...options,
+          });
+        },
+      },
     }
+  );
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const isAuthRoute =
+    request.nextUrl.pathname.startsWith("/login") ||
+    request.nextUrl.pathname.startsWith("/register");
+  const isApiAuthRoute = request.nextUrl.pathname.startsWith("/api/auth"); // Example API auth route
+  const isPublicAsset =
+    request.nextUrl.pathname.match(/\.(?:svg|png|jpg|jpeg|gif|webp)$/) !== null;
+
+  // Let API auth routes and public assets pass through
+  if (isApiAuthRoute || isPublicAsset) {
+    return response;
   }
 
-  // Authentication check
-  const supabase = createMiddlewareClient({ req, res });
-  await supabase.auth.getSession();
+  // Redirect to dashboard if user is logged in and tries to access auth routes
+  if (user && isAuthRoute) {
+    return NextResponse.redirect(new URL("/dashboard", request.url));
+  }
 
-  return res;
+  // Redirect to login if user is not logged in and tries to access protected routes
+  if (!user && !isAuthRoute) {
+    // Allow access to root page if it's public
+    if (request.nextUrl.pathname === "/") {
+      return response;
+    }
+    return NextResponse.redirect(new URL("/login", request.url));
+  }
+
+  // Refresh session for logged-in users on protected routes
+  // await supabase.auth.getSession(); // Refreshes the session cookie
+
+  return response;
 }
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|public/).*)",
-    "/api/:path*",
+    /*
+     * Match all request paths except for the ones starting with:
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     * Feel free to add other exclusions here (e.g., public assets)
+     */
+    "/((?!_next/static|_next/image|favicon.ico).*)",
   ],
 };

@@ -1,37 +1,57 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { createBrowserClient } from "@supabase/ssr";
 import { Session, User } from "@supabase/supabase-js";
+import { useSupabaseClient } from "@/context/SupabaseProvider";
 
 export function useSession() {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
+  const supabase = useSupabaseClient();
 
   useEffect(() => {
+    let isMounted = true;
+
     // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (isMounted) {
+        if (user) {
+          supabase.auth.getSession().then(({ data: { session } }) => {
+            if (isMounted) {
+              setSession(session);
+              setUser(user);
+              setLoading(false);
+            }
+          });
+        } else {
+          setSession(null);
+          setUser(null);
+          setLoading(false);
+        }
+      }
     });
 
     // Listen for auth changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
+    } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      if (isMounted) {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        setSession(session);
+        setUser(user);
+        setLoading(false);
+      }
     });
 
-    return () => subscription.unsubscribe();
-  }, [supabase.auth]);
+    // Cleanup function
+    return () => {
+      isMounted = false;
+      subscription?.unsubscribe();
+    };
+  }, [supabase]);
 
   return { session, user, loading };
 }

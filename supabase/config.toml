@@ -75,7 +75,7 @@ url = ""
 
 [auth.external.google]
 enabled = true
-client_id = "" # Set this using environment variable
-secret = "" # Set this using environment variable
+client_id = "113443702086-iklh9u1hhfjh70k7bego78jern5tu0db.apps.googleusercontent.com" # Uzupełnij po utworzeniu projektu w Google Cloud Console
+secret = "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" # Uzupełnij po utworzeniu projektu w Google Cloud Console
 # Overrides the default auth redirectUrl.
 redirect_uri = "http://localhost:3000/auth/callback" 

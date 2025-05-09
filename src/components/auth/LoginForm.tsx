@@ -85,9 +85,8 @@ export default function LoginForm() {
       setError(
         err.message || "Nie udało się zalogować przez Google. Spróbuj ponownie."
       );
-      setIsLoading(false); // Kończymy ładowanie tylko w przypadku błędu
+      setIsLoading(false);
     }
-    // Nie ustawiamy setIsLoading(false) w przypadku sukcesu, bo i tak nastąpi przekierowanie
   };
 
   return (
