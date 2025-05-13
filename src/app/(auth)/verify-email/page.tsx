@@ -2,7 +2,7 @@
 
 import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { supabase } from "@/lib/supabase/client";
+import { useSupabaseClient } from "@/context/SupabaseProvider";
 import Image from "next/image";
 
 function VerifyEmailContent() {
@@ -10,6 +10,7 @@ function VerifyEmailContent() {
   const searchParams = useSearchParams();
   const [isVerifying, setIsVerifying] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const supabase = useSupabaseClient();
 
   useEffect(() => {
     const verifyEmail = async () => {
@@ -39,23 +40,24 @@ function VerifyEmailContent() {
     };
 
     verifyEmail();
-  }, []);
+  }, [router, searchParams, supabase]);
 
   return (
     <div className="min-h-screen grid grid-cols-1 lg:grid-cols-2 bg-base-100">
       {/* Sekcja Brandingowa */}
       <div className="hidden lg:flex flex-col items-center justify-center p-12 bg-gradient-to-br from-primary to-secondary text-primary-content relative overflow-hidden">
         <Image
-          src="/logo-white.svg"
+          src="/Logo-text-white.svg"
           alt="ServiceFlowCRM Logo"
-          width={150}
-          height={40}
-          className="mb-8"
+          width={350}
+          height={95}
+          className="mb-3 mx-auto"
+          priority
         />
-        <h1 className="text-4xl font-bold mb-4 text-center">
+        <h1 className="text-4xl text-white font-bold mb-4 text-center">
           Weryfikacja adresu email
         </h1>
-        <p className="text-lg opacity-90 text-center max-w-md">
+        <p className="text-lg text-white opacity-90 text-center max-w-md">
           Trwa weryfikacja Twojego adresu email...
         </p>
       </div>

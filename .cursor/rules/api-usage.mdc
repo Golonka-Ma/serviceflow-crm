@@ -1,0 +1,127 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# API Usage Guide
+
+## Supabase Integration
+### Authentication
+```typescript
+// Client-side authentication
+const { data, error } = await supabase.auth.signInWithPassword({
+  email: string,
+  password: string
+});
+
+// OAuth authentication
+const { data, error } = await supabase.auth.signInWithOAuth({
+  provider: 'google',
+  options: {
+    redirectTo: string
+  }
+});
+```
+
+### Database Operations
+```typescript
+// Query data
+const { data, error } = await supabase
+  .from('table_name')
+  .select('*')
+  .eq('column', value);
+
+// Insert data
+const { data, error } = await supabase
+  .from('table_name')
+  .insert([{ column: value }]);
+
+// Update data
+const { data, error } = await supabase
+  .from('table_name')
+  .update({ column: value })
+  .eq('id', id);
+
+// Delete data
+const { data, error } = await supabase
+  .from('table_name')
+  .delete()
+  .eq('id', id);
+```
+
+## API Route Structure
+- API routes are located in `src/app/api/`
+- Each route should:
+  - Validate input using Zod schemas
+  - Handle errors appropriately
+  - Return proper status codes
+  - Include proper TypeScript types
+
+## Error Handling
+```typescript
+try {
+  // API call
+} catch (error) {
+  if (error instanceof Error) {
+    // Handle specific error
+  }
+  // Handle generic error
+}
+```
+
+## Data Fetching Patterns
+### SWR Usage
+```typescript
+const { data, error, isLoading } = useSWR('/api/endpoint', fetcher);
+```
+
+### React Query Best Practices
+- Use proper cache keys
+- Implement optimistic updates
+- Handle loading and error states
+- Implement proper revalidation strategies
+
+## Security Best Practices
+1. **Authentication**
+   - Always verify user session
+   - Use middleware for protected routes
+   - Implement proper CORS policies
+
+2. **Data Validation**
+   - Validate all input using Zod
+   - Sanitize user input
+   - Implement proper type checking
+
+3. **Error Handling**
+   - Don't expose sensitive information
+   - Log errors appropriately
+   - Return user-friendly error messages
+
+## Performance Considerations
+1. **Caching**
+   - Implement proper cache strategies
+   - Use SWR for client-side caching
+   - Consider Redis for server-side caching
+
+2. **Optimization**
+   - Implement pagination for large datasets
+   - Use proper indexing in database
+   - Optimize API response size
+
+## External API Integration
+### Stripe
+- Handle webhooks properly
+- Implement proper error handling
+- Use TypeScript for type safety
+
+### Google OAuth
+- Implement proper redirect handling
+- Store tokens securely
+- Handle token refresh
+
+## Testing
+- Write tests for API routes
+- Mock external API calls
+- Test error scenarios
+- Implement proper integration tests
+

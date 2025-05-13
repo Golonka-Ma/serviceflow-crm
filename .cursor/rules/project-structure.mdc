@@ -1,0 +1,39 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Project Structure Guide
+
+This is a Next.js application with the following key structure:
+
+- **Main Configuration:**
+    - `[package.json](mdc:package.json)`: Manages project dependencies and scripts.
+    - `[next.config.js](mdc:next.config.js)`: Next.js specific configurations.
+    - `[tailwind.config.js](mdc:tailwind.config.js)`: Tailwind CSS configuration.
+    - `[tsconfig.json](mdc:tsconfig.json)`: TypeScript compiler options.
+
+- **Entry Points & Routing (primarily in `src/app/`):**
+    - `[src/app/layout.tsx](mdc:src/app/layout.tsx)`: The main layout component for the application.
+    - `[src/app/page.tsx](mdc:src/app/page.tsx)`: The entry page for the root route.
+    - The `src/app/(app)/` directory likely contains the core application routes and pages.
+    - The `src/app/(auth)/` directory likely handles authentication-related pages.
+    - `[middleware.ts](mdc:middleware.ts)`: Handles request middleware, potentially for auth or routing.
+
+- **Core Application Code (`src/`):**
+    - `[src/components/](mdc:src/components)`: Reusable UI components.
+    - `[src/hooks/](mdc:src/hooks)`: Custom React hooks.
+    - `[src/context/](mdc:src/context)`: React context providers for state management.
+    - `[src/lib/](mdc:src/lib)`: Application-specific library code and utilities.
+    - `[src/types/](mdc:src/types)`: TypeScript type definitions.
+
+- **Static Assets:**
+    - `[public/](mdc:public)`: Contains static files like images and fonts.
+
+- **Backend & Services:**
+    - `[supabase/](mdc:supabase)`: Files related to Supabase integration (database, auth, etc.).
+    - `[src/app/api/](mdc:src/app/api)`: Likely contains API route handlers.
+
+- **Global Styles:**
+    - `[src/app/globals.css](mdc:src/app/globals.css)`: Global stylesheets.
+

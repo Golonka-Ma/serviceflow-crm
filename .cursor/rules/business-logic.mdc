@@ -1,0 +1,75 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Core Business Logic
+
+## Authentication & Authorization
+- Authentication is handled through Supabase Auth
+- Supports email/password and Google OAuth login
+- Protected routes are managed through middleware
+- User sessions are managed via Supabase client
+
+## Client Management
+- Clients are stored in Supabase database
+- Each client belongs to a user (user_id)
+- Clients can be associated with a company (company_id)
+- Client data structure is defined in `[src/types/client.ts](mdc:src/types/client.ts)`
+- Supports custom fields for flexible client data
+
+## Data Models
+### Client
+- Core fields: id, user_id, first_name, last_name, display_name
+- Contact info: email, phone, address, city, postal_code, country
+- Additional data: notes, tags, custom_fields
+- Metadata: is_active, created_at, updated_at
+
+## API Integration
+### Supabase
+- Primary database and authentication provider
+- Used for real-time data synchronization
+- Handles user authentication and session management
+
+### External Services
+- Google OAuth for social login
+- Integration with payment processing (Stripe)
+- Redis for caching (via Upstash)
+
+## Core Features
+1. **Authentication**
+   - Email/password login
+   - Google OAuth integration
+   - Password reset functionality
+   - Session management
+
+2. **Client Management**
+   - CRUD operations for clients
+   - Client categorization and tagging
+   - Custom field support
+   - Client search and filtering
+
+3. **Dashboard**
+   - Overview of key metrics
+   - Recent activity tracking
+   - Quick access to common actions
+
+4. **Settings**
+   - User preferences
+   - Account management
+   - Integration settings
+
+## Security Considerations
+- All API routes are protected
+- User data is isolated by user_id
+- Sensitive operations require authentication
+- Input validation using Zod schemas
+- Proper error handling and logging
+
+## Performance Optimizations
+- Client-side caching with SWR
+- Optimistic updates for better UX
+- Proper loading states and error handling
+- Efficient database queries
+- Image optimization with Next.js
+

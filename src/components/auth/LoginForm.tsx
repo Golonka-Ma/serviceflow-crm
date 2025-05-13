@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { supabase } from "@/lib/supabase/client";
+import { useSupabaseClient } from "@/context/SupabaseProvider";
 import Image from "next/image";
 import { FiMail, FiLock, FiEye, FiEyeOff } from "react-icons/fi";
 
@@ -23,6 +23,7 @@ export default function LoginForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
+  const supabase = useSupabaseClient();
 
   // Pobieramy redirectTo z URL query params
   const redirectTo = searchParams.get("redirectTo") || "/dashboard";
@@ -85,9 +86,8 @@ export default function LoginForm() {
       setError(
         err.message || "Nie udało się zalogować przez Google. Spróbuj ponownie."
       );
-      setIsLoading(false); // Kończymy ładowanie tylko w przypadku błędu
+      setIsLoading(false);
     }
-    // Nie ustawiamy setIsLoading(false) w przypadku sukcesu, bo i tak nastąpi przekierowanie
   };
 
   return (

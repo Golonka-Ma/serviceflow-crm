@@ -1,9 +1,12 @@
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
-import { createServerClient } from "@supabase/ssr";
+import { createServerClient, type CookieOptions } from "@supabase/ssr";
+import { NextResponse, type NextRequest } from "next/server";
 
-export async function middleware(req: NextRequest) {
-  const res = NextResponse.next();
+export async function middleware(request: NextRequest) {
+  let response = NextResponse.next({
+    request: {
+      headers: request.headers,
+    },
+  });
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -11,76 +14,124 @@ export async function middleware(req: NextRequest) {
     {
       cookies: {
         get(name: string) {
-          return req.cookies.get(name)?.value;
+          return request.cookies.get(name)?.value;
         },
-        set(name: string, value: string, options: any) {
-          res.cookies.set({
+        set(name: string, value: string, options: CookieOptions) {
+          request.cookies.set({
+            // Ważne: modyfikuj ciasteczka na request, jeśli Supabase ma je odczytać w tej samej operacji
+            name,
+            value,
+            ...options,
+          });
+          response.cookies.set({
+            // Ustaw ciasteczko w odpowiedzi wysyłanej do przeglądarki
             name,
             value,
             ...options,
           });
         },
-        remove(name: string, options: any) {
-          res.cookies.set({
+        remove(name: string, options: CookieOptions) {
+          request.cookies.set({
+            // Jak wyżej
             name,
             value: "",
             ...options,
-            maxAge: 0,
+          });
+          response.cookies.delete({
+            name,
+            path: options.path,
+            domain: options.domain,
           });
         },
       },
     }
   );
 
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
+  let user = null;
+  try {
+    const { data: supabaseData, error: supabaseAuthError } =
+      await supabase.auth.getUser();
 
-  // Define public routes that don't require authentication
-  const publicRoutes = [
-    "/",
-    "/login",
-    "/register",
-    "/reset-password",
-    "/auth/callback",
-    "/api/public",
-  ];
+    if (!supabaseAuthError && supabaseData?.user) {
+      user = supabaseData.user;
+    }
+  } catch (e) {
+    // Catching errors silently - user remains null
+  }
 
-  const isPublicRoute = publicRoutes.some((route) =>
-    req.nextUrl.pathname.startsWith(route)
+  // Definicja tras
+  const pathname = request.nextUrl.pathname;
+
+  const publicRoutes = ["/", "/cennik", "/kontakt"]; // Dodaj WSZYSTKIE swoje publiczne trasy
+  const authRoutes = ["/login", "/register", "/reset-password"]; // Trasy związane z logowaniem/rejestracją
+  const apiAuthRoutePrefix = "/api/auth"; // Np. /api/auth/callback, /api/auth/signout
+
+  // Sprawdzenie, czy bieżąca ścieżka jest publiczna
+  const isPublicRoute = publicRoutes.some(
+    (route) => pathname === route || pathname.startsWith(route + "/")
   );
 
-  // Handle authentication
-  if (!session && !isPublicRoute) {
-    // Store the original URL to redirect after login
-    const redirectUrl = new URL("/login", req.url);
-    redirectUrl.searchParams.set("redirectTo", req.nextUrl.pathname);
-    return NextResponse.redirect(redirectUrl);
+  // Sprawdzenie, czy bieżąca ścieżka jest trasą uwierzytelniania (logowanie, rejestracja)
+  const isAuthRoute = authRoutes.some(
+    (route) => pathname === route || pathname.startsWith(route + "/")
+  );
+
+  // Sprawdzenie, czy to trasa API związana z auth lub zasób statyczny
+  const isApiAuthRoute = pathname.startsWith(apiAuthRoutePrefix);
+  const isSupabaseCallback = pathname === "/auth/callback";
+  const isStaticAsset =
+    pathname.match(/\.(?:svg|png|jpg|jpeg|gif|webp|ico|css|js)$/i) !== null ||
+    pathname.startsWith("/_next/");
+
+  // 1. Zawsze zezwalaj na dostęp do zasobów statycznych i tras API do autoryzacji
+  if (isStaticAsset || isApiAuthRoute || isSupabaseCallback) {
+    return response;
   }
 
-  // Redirect authenticated users away from auth pages
-  if (
-    session &&
-    (req.nextUrl.pathname.startsWith("/login") ||
-      req.nextUrl.pathname.startsWith("/register") ||
-      req.nextUrl.pathname.startsWith("/reset-password"))
-  ) {
-    return NextResponse.redirect(new URL("/dashboard", req.url));
+  // 2. Jeśli użytkownik jest zalogowany
+  if (user) {
+    // Jeśli próbuje wejść na stronę logowania/rejestracji, przekieruj go na dashboard
+    if (isAuthRoute) {
+      return NextResponse.redirect(new URL("/dashboard", request.url));
+    }
+
+    // Dla wszystkich innych tras - pozwól przejść
+    return response;
   }
 
-  return res;
+  // 3. Jeśli użytkownik NIE jest zalogowany
+  if (!user) {
+    // Explicitly handle the case when user is trying to access /login
+    if (pathname === "/login") {
+      return response;
+    }
+
+    // Jeśli próbuje wejść na trasę, która NIE JEST publiczna ANI NIE JEST trasą logowania/rejestracji -> przekieruj do logowania
+    if (!isPublicRoute && !isAuthRoute) {
+      const loginUrl = new URL("/login", request.url);
+      loginUrl.searchParams.set("redirectTo", pathname);
+      return NextResponse.redirect(loginUrl);
+    }
+
+    // Dla tras publicznych i tras logowania/rejestracji - pozwól przejść
+    return response;
+  }
+
+  // Domyślnie, jeśli żaden warunek nie został spełniony
+  return response;
 }
 
-// Specify which routes should be processed by the middleware
 export const config = {
+  // matcher: ["/dashboard"],
   matcher: [
     /*
-     * Match all request paths except:
+     * Match all request paths except for the ones starting with:
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
-     * - public folder
+     * - Możesz dodać inne wykluczenia, np. folder /public, jeśli nie jest obsługiwany inaczej
+     * np. "/((?!_next/static|_next/image|favicon.ico|fonts/|images/).*)",
      */
-    "/((?!_next/static|_next/image|favicon.ico|public/|assets/).*)",
+    "/((?!_next/static|_next/image|favicon.ico).*)",
   ],
 };

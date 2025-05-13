@@ -1,7 +1,9 @@
-import { supabase } from "@/lib/supabase/client";
+import { createBrowserSupabaseClient } from "@/lib/supabase/client";
 
 async function initDatabase() {
   try {
+    const supabase = createBrowserSupabaseClient();
+
     // Sprawdź połączenie
     const { data, error } = await supabase.from("clients").select("count");
 

@@ -21,11 +21,11 @@ export default function ConfirmResetPasswordPage() {
         {/* Reszta zawartości sekcji brandingowej */}
         <div className="relative z-10 max-w-xl mx-auto text-center">
           <Image
-            src="/logo-white.png"
+            src="/Logo-text-white.svg"
             alt="ServiceFlowCRM Logo"
-            width={180}
-            height={45}
-            className="mb-12 mx-auto"
+            width={350}
+            height={95}
+            className="mb-3 mx-auto"
             priority
           />
           <h1 className="text-5xl font-bold mb-6 text-white leading-tight">
@@ -59,12 +59,12 @@ export default function ConfirmResetPasswordPage() {
       <div className="flex flex-col items-center justify-center min-h-screen p-6 sm:p-12 bg-base-100">
         <div className="w-full max-w-[400px] mx-auto">
           {/* Logo Mobilne */}
-          <div className="lg:hidden flex justify-center mb-12">
+          <div className="lg:hidden flex justify-center mb-2">
             <Image
-              src="/logo-color.png"
+              src="/Logo-text-gear-black.svg"
               alt="ServiceFlowCRM Logo"
-              width={160}
-              height={40}
+              width={350}
+              height={75}
               priority
             />
           </div>

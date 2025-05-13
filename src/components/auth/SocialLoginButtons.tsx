@@ -2,10 +2,11 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/Button";
-import { supabase } from "@/lib/supabase/client";
+import { useSupabaseClient } from "@/context/SupabaseProvider";
 
 export function SocialLoginButtons() {
   const [isLoading, setIsLoading] = useState<string | null>(null);
+  const supabase = useSupabaseClient();
 
   const handleSocialLogin = async (provider: "google" | "facebook") => {
     try {

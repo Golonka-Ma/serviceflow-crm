@@ -2,14 +2,19 @@
 
 import React from "react";
 import { useAppContext } from "@/context/AppContext";
-import { useSessionContext } from "@/components/auth/SessionProvider";
-import { Button } from "@/components/ui/Button"; // Assuming Button component exists
-import { Menu, Sun, Moon, User, LogOut } from "lucide-react";
+import { Button } from "@/components/ui/Button";
+import { Menu, Search } from "lucide-react";
+import { UserDropdown } from "@/components/layout/UserDropdown";
+import { Input } from "@/components/ui/Input";
 // Placeholder for a potential useAuth hook
 // import { useAuth } from '@/hooks/useAuth';
 
-export default function Header() {
-  const { toggleSidebar, darkMode, setDarkMode } = useAppContext();
+interface HeaderProps {
+  onMenuToggle?: () => void;
+}
+
+export function Header({ onMenuToggle }: HeaderProps) {
+  const { toggleSidebar, darkMode, setDarkMode, sidebarOpen } = useAppContext();
   // const { user } = useSessionContext(); // Use this to show user info
   // const { signOut } = useAuth(); // Use this for logout functionality
 
@@ -23,51 +28,33 @@ export default function Header() {
   const user = { email: "user@example.com" }; // Replace with actual user data
 
   return (
-    <header className="bg-white shadow-sm sticky top-0 z-20">
-      <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-        {/* Left side: Mobile menu button and Breadcrumbs */}
-        <div className="flex items-center">
-          <button
+    <header className="sticky top-0 z-30 w-full border-b border-base-300 bg-base-100/80 backdrop-blur dark:border-base-content/10 dark:bg-base-200/80">
+      <div className="flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
+        {/* Left side: Mobile Menu Toggle and Logo */}
+        <div className="flex items-center gap-4">
+          {/* Mobile menu button */}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="md:hidden h-10 w-10 p-0"
             onClick={toggleSidebar}
-            className="text-gray-500 mr-4 lg:hidden"
-            aria-label="Open sidebar"
+            aria-label="Toggle sidebar"
           >
-            <Menu size={24} />
-          </button>
-          {/* Breadcrumbs placeholder */}
-          <div className="hidden md:block text-sm text-gray-500">
-            Dashboard / Overview
+            <Menu className="h-6 w-6" />
+          </Button>
+        </div>
+
+        {/* Center: Search Bar */}
+        <div className="flex flex-1 justify-center px-4 lg:px-8">
+          <div className="relative w-full max-w-md">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-base-content/50" />
+            <Input placeholder="Search..." className="pl-9 pr-4 py-2 w-full" />
           </div>
         </div>
 
-        {/* Right side: Actions */}
-        <div className="flex items-center space-x-4">
-          {/* Dark Mode Toggle */}
-          <button
-            onClick={() => setDarkMode(!darkMode)}
-            className="text-gray-500 hover:text-gray-700"
-            aria-label={
-              darkMode ? "Switch to light mode" : "Switch to dark mode"
-            }
-          >
-            {darkMode ? <Sun size={20} /> : <Moon size={20} />}
-          </button>
-
-          {/* User Dropdown Placeholder - Replace with actual dropdown */}
-          {user ? (
-            <div className="relative">
-              <Button variant="ghost" className="flex items-center">
-                <User size={20} className="mr-2" />
-                {user.email}
-              </Button>
-              {/* Basic placeholder for dropdown content */}
-              {/* <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 hidden"> */}
-              {/*   <button onClick={handleLogout} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left">Logout</button> */}
-              {/* </div> */}
-            </div>
-          ) : (
-            <Button>Login</Button> // Or Link to login
-          )}
+        {/* Right side actions */}
+        <div className="hidden md:flex items-center gap-3 sm:gap-4">
+          <UserDropdown />
         </div>
       </div>
     </header>
