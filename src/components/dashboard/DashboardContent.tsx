@@ -1,17 +1,19 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { PageHeader } from "@/components/ui/PageHeader";
 import {
   Users,
   Briefcase,
   Bell,
   DollarSign,
-  CheckCircle,
   Calendar,
   UserPlus,
 } from "lucide-react";
 import { formatDate, formatCurrency } from "@/lib/utils";
+import { useSupabaseClient } from "@/context/SupabaseProvider";
+import { useRouter } from "next/navigation";
+import { useSessionContext } from "@/components/auth/SessionProvider";
 
 // Import nowe komponenty
 import {
@@ -46,6 +48,8 @@ interface DashboardContentProps {
 export function DashboardContent({ data }: DashboardContentProps) {
   const { welcomeName, stats, statTrends, upcomingJobs, upcomingReminders } =
     data;
+
+  const router = useRouter();
 
   // Akcje szybkiego dostępu
   const quickActions = [
@@ -118,81 +122,80 @@ export function DashboardContent({ data }: DashboardContentProps) {
           icon={DollarSign}
           description="Przychód z 30 dni"
           trend={{ value: 27, isPositive: true }}
-          variant="primary"
         />
       </StatsCardGrid>
 
       {/* Główna Sekcja Dashboard */}
       <DashboardOverview />
 
-      <DashboardCardGrid className="grid-cols-1 lg:grid-cols-3">
-        {/* Szybkie Akcje */}
-        <ActionCard
-          title="Szybkie Akcje"
-          actions={quickActions}
-          buttonVariant="outline"
-        />
+      {/* Sekcja Quick Actions i Aktywności */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+        {/* Quick Actions */}
+        <div className="lg:col-span-4">
+          <ActionCard
+            title="Szybkie akcje"
+            actions={quickActions}
+            buttonVariant="outline"
+          />
+        </div>
 
-        {/* Nadchodzące Zlecenia */}
-        <DashboardCard
-          title="Nadchodzące Zlecenia"
-          viewAllLink="/jobs?status=scheduled"
-          className="lg:col-span-2"
-        >
-          <DataList emptyMessage="Brak nadchodzących zleceń.">
-            {upcomingJobs.map((job: any) => (
-              <DataListItem
-                key={job.id}
-                icon={CheckCircle}
-                iconColor="secondary"
-                title={job.title}
-                titleHref={`/jobs/${job.id}`}
-                subtitle={
-                  job.clients
-                    ? `${job.clients.first_name} ${job.clients.last_name}`
-                    : "Brak klienta"
-                }
-                rightText={
-                  job.scheduled_at
-                    ? formatDate(job.scheduled_at, "dd.MM HH:mm")
-                    : "-"
-                }
-              />
-            ))}
-          </DataList>
-        </DashboardCard>
+        {/* Upcoming Activities */}
+        <div className="space-y-6 lg:col-span-8">
+          {/* Upcoming Jobs */}
+          <DashboardCard
+            title="Nadchodzące zlecenia"
+            viewAllLink="/jobs"
+            viewAllLabel="Wszystkie zlecenia"
+          >
+            {upcomingJobs && upcomingJobs.length > 0 ? (
+              <DataList>
+                {upcomingJobs.map((job) => (
+                  <DataListItem
+                    key={job.id}
+                    title={job.title}
+                    titleHref={`/jobs/${job.id}`}
+                    subtitle={`${job.clients.first_name} ${job.clients.last_name}`}
+                    icon={Briefcase}
+                    iconColor="secondary"
+                    rightText={formatDate(job.scheduled_at)}
+                  />
+                ))}
+              </DataList>
+            ) : (
+              <div className="py-8 text-center text-base-content/70">
+                <p>Brak nadchodzących zleceń</p>
+              </div>
+            )}
+          </DashboardCard>
 
-        {/* Nadchodzące Przypomnienia */}
-        <DashboardCard
-          title="Nadchodzące Przypomnienia"
-          viewAllLink="/reminders?status=pending"
-          className="lg:col-span-3"
-        >
-          <DataList emptyMessage="Brak nadchodzących przypomnień.">
-            {upcomingReminders.map((reminder: any) => (
-              <DataListItem
-                key={reminder.id}
-                icon={Bell}
-                iconColor="warning"
-                title={reminder.title}
-                titleHref={`/reminders/${reminder.id}`}
-                subtitle={
-                  reminder.clients
-                    ? `${reminder.clients.first_name} ${reminder.clients.last_name}`
-                    : reminder.job_id
-                      ? "Zlecenie"
-                      : "Ogólne"
-                }
-                rightText={
-                  reminder.reminder_date
-                    ? formatDate(reminder.reminder_date, "dd.MM HH:mm")
-                    : "-"
-                }
-              />
-            ))}
-          </DataList>
-        </DashboardCard>
-      </DashboardCardGrid>
+          {/* Upcoming Reminders */}
+          <DashboardCard
+            title="Przypomnienia"
+            viewAllLink="/reminders"
+            viewAllLabel="Wszystkie przypomnienia"
+          >
+            {upcomingReminders && upcomingReminders.length > 0 ? (
+              <DataList>
+                {upcomingReminders.map((reminder) => (
+                  <DataListItem
+                    key={reminder.id}
+                    title={reminder.title}
+                    titleHref={`/reminders/${reminder.id}`}
+                    subtitle={`${reminder.clients.first_name} ${reminder.clients.last_name}`}
+                    icon={Bell}
+                    iconColor="warning"
+                    rightText={formatDate(reminder.reminder_date)}
+                  />
+                ))}
+              </DataList>
+            ) : (
+              <div className="py-8 text-center text-base-content/70">
+                <p>Brak nadchodzących przypomnień</p>
+              </div>
+            )}
+          </DashboardCard>
+        </div>
+      </div>
     </div>
   );
 }

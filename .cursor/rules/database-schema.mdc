@@ -1,0 +1,79 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Database Schema Documentation
+
+This document provides an overview of the ServiceFlow CRM database schema and its relationships.
+
+## Core Tables
+
+### Profiles
+- Primary user information table linked to Supabase Auth
+- Key fields: id (UUID), first_name, last_name, email, phone, avatar_url
+- Has Row Level Security (RLS) policies for user data protection
+- Automatically generates display_name from first_name and last_name
+
+### Companies
+- Stores company information for each user
+- Key fields: id (UUID), user_id, name, tax_id, address, contact info
+- Includes JSONB settings field for flexible company configuration
+- Has RLS policies ensuring users can only access their own companies
+
+### Clients
+- Stores client information with company associations
+- Key fields: id (UUID), user_id, company_id, contact details
+- Features:
+  - Full-text search capabilities
+  - Custom fields support via JSONB
+  - Tag system for client categorization
+  - Active/inactive status tracking
+- Has RLS policies for data security
+
+## Related Tables
+
+### Jobs
+- Tracks client jobs and services
+- Linked to clients and companies
+- Includes status tracking and scheduling
+
+### Documents
+- Manages client and company documents
+- Supports file attachments and document metadata
+
+### Reminders
+- Handles task and appointment reminders
+- Linked to clients and jobs
+
+### Payments
+- Tracks financial transactions
+- Associated with clients and jobs
+
+### Subscriptions
+- Manages recurring service subscriptions
+- Linked to clients and companies
+
+## Security Features
+
+- Row Level Security (RLS) enabled on all tables
+- User-specific data isolation
+- Automatic timestamp management (created_at, updated_at)
+- Indexed fields for optimal query performance
+
+## Best Practices
+
+1. Always use the provided RLS policies when querying data
+2. Utilize the full-text search capabilities for client searches
+3. Take advantage of the custom_fields JSONB for extensible data storage
+4. Use the display_name generated columns for consistent name formatting
+
+## Database Functions
+
+The database includes utility functions for:
+- Automatic timestamp updates
+- Data validation
+- Complex queries and views
+
+For detailed table structures and relationships, refer to the migration files in the `supabase/migrations` directory.
+

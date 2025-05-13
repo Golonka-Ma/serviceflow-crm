@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useMemo, ReactNode } from "react";
 import { SupabaseClient } from "@supabase/supabase-js";
-import { createBrowserClient } from "@supabase/ssr";
+import { createBrowserSupabaseClient } from "@/lib/supabase/client";
 
 // Define the shape of the context value
 interface SupabaseContextType {
@@ -16,9 +16,7 @@ const SupabaseContext = createContext<SupabaseContextType>({ supabase: null });
 export function SupabaseProvider({ children }: { children: ReactNode }) {
   // Create the Supabase client instance only once using useMemo
   const supabase = useMemo(() => {
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-    return createBrowserClient(supabaseUrl, supabaseAnonKey);
+    return createBrowserSupabaseClient();
   }, []);
 
   return (

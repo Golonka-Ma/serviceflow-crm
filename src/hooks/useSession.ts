@@ -3,45 +3,39 @@
 import { useEffect, useState } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { useSupabaseClient } from "@/context/SupabaseProvider";
+import { useRouter } from "next/navigation";
 
 export function useSession() {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const supabase = useSupabaseClient();
+  const router = useRouter();
 
   useEffect(() => {
     let isMounted = true;
 
-    // Get initial session
-    supabase.auth.getUser().then(({ data: { user } }) => {
+    // Get session once at initialization
+    supabase.auth.getSession().then(({ data: { session } }) => {
       if (isMounted) {
-        if (user) {
-          supabase.auth.getSession().then(({ data: { session } }) => {
-            if (isMounted) {
-              setSession(session);
-              setUser(user);
-              setLoading(false);
-            }
-          });
+        if (session) {
+          setSession(session);
+          setUser(session.user);
         } else {
           setSession(null);
           setUser(null);
-          setLoading(false);
         }
+        setLoading(false);
       }
     });
 
     // Listen for auth changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    } = supabase.auth.onAuthStateChange((event, session) => {
       if (isMounted) {
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
         setSession(session);
-        setUser(user);
+        setUser(session?.user || null);
         setLoading(false);
       }
     });
@@ -51,7 +45,7 @@ export function useSession() {
       isMounted = false;
       subscription?.unsubscribe();
     };
-  }, [supabase]);
+  }, [supabase, router]);
 
   return { session, user, loading };
 }

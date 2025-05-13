@@ -2,7 +2,7 @@
 
 import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { supabase } from "@/lib/supabase/client";
+import { useSupabaseClient } from "@/context/SupabaseProvider";
 import Image from "next/image";
 
 function VerifyEmailContent() {
@@ -10,6 +10,7 @@ function VerifyEmailContent() {
   const searchParams = useSearchParams();
   const [isVerifying, setIsVerifying] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const supabase = useSupabaseClient();
 
   useEffect(() => {
     const verifyEmail = async () => {
@@ -39,7 +40,7 @@ function VerifyEmailContent() {
     };
 
     verifyEmail();
-  }, []);
+  }, [router, searchParams, supabase]);
 
   return (
     <div className="min-h-screen grid grid-cols-1 lg:grid-cols-2 bg-base-100">

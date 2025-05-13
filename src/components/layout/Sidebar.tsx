@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, memo } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 import {
@@ -14,12 +14,15 @@ import {
   Moon,
   X,
   LogOut,
+  HelpCircle,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { useAppContext } from "@/context/AppContext";
 import { useSessionContext } from "@/components/auth/SessionProvider";
 import LogoCollapsed from "../../../public/Logo.svg";
 import LogoExpanded from "../../../public/Logo-text-gear-black.svg";
+import { useSupabaseClient } from "@/context/SupabaseProvider";
 
 interface NavItem {
   name: string;
@@ -38,18 +41,50 @@ interface SidebarProps {
   className?: string;
 }
 
+// Memoize NavLink to avoid unnecessary re-renders
+const NavLink = memo(({ item }: { item: NavItem }) => {
+  const pathname = usePathname();
+  const isActive =
+    pathname === item.href || pathname.startsWith(`${item.href}/`);
+  const Icon = item.icon;
+
+  return (
+    <Link
+      href={item.href}
+      className={cn(
+        "group flex items-center rounded-lg p-2 text-sm font-medium transition-colors",
+        isActive
+          ? "bg-primary/10 text-primary"
+          : "text-base-content/70 hover:bg-base-200/80 hover:text-base-content dark:hover:bg-base-content/10"
+      )}
+    >
+      <Icon className={cn("mr-3 h-5 w-5 flex-shrink-0")} />
+      <span className="truncate">{item.name}</span>
+    </Link>
+  );
+});
+
+NavLink.displayName = "NavLink";
+
 export function Sidebar({ className }: SidebarProps) {
   const pathname = usePathname();
   const { darkMode, setDarkMode, sidebarOpen, toggleSidebar } = useAppContext();
   const { user } = useSessionContext();
+  const supabase = useSupabaseClient();
+  const router = useRouter();
+  const [signOutLoading, setSignOutLoading] = React.useState(false);
 
   // Close sidebar on mobile when route changes
   useEffect(() => {
     // Only close if sidebar is open and we're on mobile
-    if (sidebarOpen && window.innerWidth < 768) {
+    if (
+      sidebarOpen &&
+      typeof window !== "undefined" &&
+      window.innerWidth < 768
+    ) {
       toggleSidebar();
     }
-  }, [pathname]); // Remove sidebarOpen and toggleSidebar from dependencies
+  }, [pathname]); // Only depend on pathname changes
 
   // Theme toggle function with localStorage persistence
   const toggleTheme = () => {
@@ -61,87 +96,47 @@ export function Sidebar({ className }: SidebarProps) {
     }
   };
 
-  const NavLink = ({ item }: { item: NavItem }) => {
-    const isActive =
-      pathname === item.href ||
-      (item.href !== "/dashboard" && pathname.startsWith(item.href));
-    return (
-      <Link
-        href={item.href}
-        className={cn(
-          "group/navitem relative flex h-12 items-center gap-x-3 overflow-hidden rounded-md px-3 text-sm font-medium leading-6",
-          "text-base-content/70 hover:bg-base-200/80 hover:text-base-content dark:hover:bg-base-300/80",
-          isActive && "bg-primary/10 text-primary dark:bg-primary/20"
-        )}
-      >
-        {isActive && (
-          <span className="absolute left-0 top-0 h-full w-1 bg-primary rounded-r-full"></span>
-        )}
-        <item.icon
-          className={cn(
-            "h-6 w-6 shrink-0",
-            isActive
-              ? "text-primary"
-              : "text-base-content/50 group-hover/navitem:text-base-content"
-          )}
-          aria-hidden="true"
-        />
-        <span className="min-w-0 whitespace-nowrap opacity-0 transition-opacity duration-200 group-hover/sidebar:opacity-100">
-          {item.name}
-        </span>
-      </Link>
-    );
-  };
+  const handleLogout = async () => {
+    setSignOutLoading(true);
 
-  const ThemeSwitcherVertical = ({ mobile = false }: { mobile?: boolean }) => (
-    <div
-      className={cn(
-        "flex flex-col items-center p-1 rounded-full bg-base-300/80 dark:bg-base-content/10",
-        mobile ? "w-auto" : "w-10"
-      )}
-    >
-      <button
-        onClick={() => !darkMode && toggleTheme()}
-        className={cn(
-          "flex h-8 w-8 items-center justify-center rounded-full transition-colors mb-1",
-          !darkMode
-            ? "bg-white text-yellow-500 shadow-sm"
-            : "bg-transparent text-base-content/60 hover:text-base-content/90"
-        )}
-        aria-label="Przełącz na jasny motyw"
-        aria-pressed={!darkMode}
-      >
-        <Sun className="h-5 w-5" />
-      </button>
-      <button
-        onClick={() => darkMode && toggleTheme()}
-        className={cn(
-          "flex h-8 w-8 items-center justify-center rounded-full transition-colors",
-          darkMode
-            ? "bg-primary/20 text-primary shadow-sm dark:bg-primary/30"
-            : "bg-transparent text-base-content/60 hover:text-base-content/90"
-        )}
-        aria-label="Przełącz na ciemny motyw"
-        aria-pressed={darkMode}
-      >
-        <Moon className="h-5 w-5" />
-      </button>
-    </div>
-  );
+    try {
+      // Najpierw wyczyść lokalny stan
+      toggleSidebar();
+
+      const { error: signOutError } = await supabase.auth.signOut({
+        scope: "global", // This clears all sessions, not just the current one
+      });
+
+      if (signOutError) {
+        throw signOutError;
+      }
+
+      // Use a combination of Next.js router and window.location to ensure proper navigation
+      router.push("/login");
+
+      // Force a full page reload after a slight delay to ensure proper cookie cleanup
+      setTimeout(() => {
+        window.location.href = "/login";
+      }, 300);
+    } catch (error) {
+      setSignOutLoading(false);
+    }
+  };
 
   return (
     <>
       <div
         className={cn(
-          "group/sidebar fixed inset-y-0 left-0 z-40 hidden w-16 flex-col border-r border-base-300 bg-base-100 text-base-content transition-all duration-300 ease-in-out hover:w-64 dark:border-base-content/10 dark:bg-base-200 md:flex",
+          "group/sidebar fixed inset-y-0 left-0 z-40 hidden w-16 flex-col border-r bg-white/90 dark:bg-[#181C20] text-base-content transition-all duration-300 ease-in-out hover:w-64 md:flex",
+          "shadow-xl backdrop-blur-md border-neutral-200 dark:border-neutral-800 dark:text-gray-100",
+          "hover:shadow-2xl hover:bg-white/95 dark:hover:bg-[#23272e]",
           "overflow-hidden",
           className
         )}
       >
         <div
           className={cn(
-            "flex h-16 shrink-0 items-center border-b border-base-300 px-4 dark:border-base-content/10",
-            "relative justify-center"
+            "flex h-16 shrink-0 items-center border-b border-neutral-200 dark:border-neutral-800 px-4 relative justify-center bg-gradient-to-r from-white/80 to-white/60 dark:from-[#181C20] dark:to-[#23272e]"
           )}
         >
           <Link
@@ -165,20 +160,71 @@ export function Sidebar({ className }: SidebarProps) {
         </div>
 
         <nav className="flex flex-1 flex-col overflow-y-auto px-2 py-4">
-          <ul role="list" className="flex flex-1 flex-col gap-y-1">
+          <ul role="list" className="flex flex-1 flex-col gap-y-2">
             {navigation.map((item) => (
               <li key={item.name}>
                 <NavLink item={item} />
               </li>
             ))}
           </ul>
-        </nav>
 
-        <div className="mt-auto border-t border-base-300 p-2 dark:border-base-content/10">
-          <div className="flex items-center justify-center p-2">
-            <ThemeSwitcherVertical />
+          <div className="mt-auto space-y-1 border-t border-base-300 pt-4 dark:border-base-content/10">
+            <button
+              onClick={toggleTheme}
+              className="group flex w-full items-center rounded-lg p-2 text-sm font-medium text-base-content/70 transition-colors hover:bg-base-200/80 hover:text-base-content dark:hover:bg-base-content/10"
+            >
+              {darkMode ? (
+                <Sun className="mr-3 h-5 w-5 flex-shrink-0" />
+              ) : (
+                <Moon className="mr-3 h-5 w-5 flex-shrink-0" />
+              )}
+              <span className="truncate">
+                {darkMode ? "Tryb jasny" : "Tryb ciemny"}
+              </span>
+            </button>
+
+            <Link
+              href="/help"
+              className="group flex w-full items-center rounded-lg p-2 text-sm font-medium text-base-content/70 transition-colors hover:bg-base-200/80 hover:text-base-content dark:hover:bg-base-content/10"
+            >
+              <HelpCircle className="mr-3 h-5 w-5 flex-shrink-0" />
+              <span className="truncate">Pomoc</span>
+            </Link>
+
+            {user && (
+              <div className="px-2 py-2">
+                <div className="flex items-center gap-3 rounded-lg bg-base-200/50 p-2 dark:bg-base-300/50">
+                  <div className="relative h-10 w-10 overflow-hidden rounded-full bg-primary/10">
+                    {user?.user_metadata?.avatar_url ? (
+                      <Image
+                        src={user.user_metadata.avatar_url}
+                        alt={
+                          user.user_metadata.full_name || user.email || "User"
+                        }
+                        fill
+                        className="object-cover"
+                      />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center text-lg font-semibold text-primary">
+                        {user?.user_metadata?.full_name?.[0]?.toUpperCase() ||
+                          user?.email?.[0]?.toUpperCase() ||
+                          "U"}
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="truncate text-sm font-medium text-base-content">
+                      {user?.user_metadata?.full_name || "Użytkownik"}
+                    </p>
+                    <p className="truncate text-xs text-base-content/70">
+                      {user?.email || "brak@email.com"}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
-        </div>
+        </nav>
       </div>
 
       <div
@@ -278,21 +324,39 @@ export function Sidebar({ className }: SidebarProps) {
                 </div>
               </div>
 
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-base-content/70">
-                  Wygląd aplikacji
-                </span>
-                <ThemeSwitcherVertical mobile={true} />
+              <div className="flex flex-col gap-2">
+                <Link href="/support">
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start gap-2 rounded-xl px-3 py-2 text-base-content/80 hover:bg-primary/10 hover:text-primary dark:hover:bg-primary/20 dark:hover:text-primary transition-colors"
+                    aria-label="Pomoc"
+                  >
+                    <HelpCircle className="h-5 w-5" />
+                    <span className="font-medium">Support</span>
+                  </Button>
+                </Link>
+                <Link href="/settings">
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start gap-2 rounded-xl px-3 py-2 text-base-content/80 hover:bg-primary/10 hover:text-primary dark:hover:bg-primary/20 dark:hover:text-primary transition-colors"
+                    aria-label="Ustawienia"
+                  >
+                    <Settings className="h-5 w-5" />
+                    <span className="font-medium">Settings</span>
+                  </Button>
+                </Link>
               </div>
               <Button
                 variant="ghost"
                 className="w-full justify-start gap-2 text-base-content/70 hover:text-base-content"
-                onClick={() => {
-                  // TODO: Implement logout
-                  console.log("Logout clicked");
-                }}
+                onClick={handleLogout}
+                disabled={signOutLoading}
               >
-                <LogOut className="h-5 w-5" />
+                {signOutLoading ? (
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                ) : (
+                  <LogOut className="h-5 w-5" />
+                )}
                 <span>Wyloguj się</span>
               </Button>
             </div>
@@ -305,12 +369,20 @@ export function Sidebar({ className }: SidebarProps) {
           "fixed inset-0 z-[99] bg-black/50 transition-opacity md:hidden",
           sidebarOpen ? "opacity-100" : "pointer-events-none opacity-0"
         )}
-        onClick={() => {
-          console.log("Overlay clicked");
-          toggleSidebar();
-        }}
+        onClick={toggleSidebar}
         aria-hidden="true"
       />
+
+      {/* Mobile sidebar toggle */}
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={toggleSidebar}
+        className="fixed bottom-4 right-4 z-50 h-12 w-12 rounded-full shadow-lg md:hidden"
+        aria-label="Toggle sidebar"
+      >
+        <Image src={LogoCollapsed} alt="Logo" width={24} height={24} />
+      </Button>
     </>
   );
 }

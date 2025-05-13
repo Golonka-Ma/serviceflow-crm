@@ -2,12 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { supabase } from "@/lib/supabase/client";
+import { useSupabaseClient } from "@/context/SupabaseProvider";
 
 export default function AuthHandler() {
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
   const searchParams = useSearchParams();
+  const supabase = useSupabaseClient();
 
   useEffect(() => {
     const handleAuth = async () => {
@@ -57,7 +58,7 @@ export default function AuthHandler() {
     };
 
     handleAuth();
-  }, [router, searchParams]);
+  }, [router, searchParams, supabase]);
 
   return (
     <div className="flex min-h-screen items-center justify-center">
